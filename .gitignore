@@ -1,0 +1,28 @@
+# --- Sandbox / environment artifacts ---
+# These appear as character-special device nodes (crw-rw-rw- nobody nogroup)
+# bind-mounted into the workspace by the environment. They are NOT project files.
+.bash_profile
+.bashrc
+.profile
+.zprofile
+.zshrc
+.gitconfig
+.gitmodules
+.ripgreprc
+.mcp.json
+.idea
+.vscode
+
+# --- Editor / OS noise ---
+*.swp
+.DS_Store
+
+# --- Local Claude Code settings (personal, not shared) ---
+.claude/settings.local.json
+
+# --- Ralph runtime artifacts (when using the reference-template in a real project) ---
+logs/
+*.log
+.last-branch
+progress.txt
+.ralph/
