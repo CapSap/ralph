@@ -37,19 +37,40 @@
   front end differs (write specs vs. extract specs from existing code). Add an
   optional brownfield bootstrap step rather than a second template. One git
   repo/dir per project regardless.
+- **D4 — The spec is the durable source of truth; the plan is disposable.**
+  I hand-edit the **spec** until it's right. The **plan is generated from
+  (spec + current repo state) and thrown out often** — it's a scratch artifact,
+  not persistent memory. **"Done-ness" is read from reality** (the code/tests
+  that exist in the repo), *not* from checkboxes in a persisted plan. This also
+  settles the format question: the plan is throwaway markdown — no need for
+  structured `prd.json` pass-tracking. → Memory = **spec + repo + git history**.
+- **D5 — Prompt structure: split, explicit.** Separate `PROMPT_plan.md` and
+  `PROMPT_build.md`. The planning phase is the cheap, high-value steering gate.
+- **D6 — Task selection: judgment-driven, evolving plan.** Models tend to grab
+  item #1, which is fine *because* the plan is freshly regenerated and
+  judgment-ordered right before building. **Judgment lives in the re-plan step**
+  (re-assess "given what's built now, what matters most?"). Build mode is told to
+  re-evaluate, not blindly take #1. The plan genuinely evolves as the repo grows.
+- **D7 — Learnings live in a dedicated, human-readable file, read every loop and
+  treated as binding.** A *learning* becomes a *standing rule* when I promote it
+  into this file; curating it is a core operator job (this is Huntley's "signs,"
+  kept explicit). **Mechanism:** the prompt opens by telling the agent to read
+  the durable files first and treat them as law — that's what makes a file an
+  every-turn instruction (context resets, so nothing binds unless re-read).
+  Tests/backpressure remain the *enforcement* layer (complementary, not replaced):
+  tests catch "code regressed," the rules file catches "don't go down road X."
+  - _Open sub-point:_ two files (`AGENTS.md` operational + `LEARNINGS.md` rules)
+    vs. one file with two sections. _pending_
+- **D8 — Plan regeneration cadence: operator-driven.** I re-run plan mode
+  whenever the plan has gone stale (cheap, disposable). Automate re-plan triggers
+  later, when walking away.
 
 ## Open decisions (next up)
 
-> Proposed starting stance noted; pending confirmation.
-
-- **Plan/state format** — markdown plan vs. structured `prd.json`.
-  *Proposed:* markdown (editable while babysitting). _pending_
-- **Prompt structure** — one `PROMPT.md` vs. split plan/build.
-  *Proposed:* split (cheap planning gate). _pending_
-- **Task selection** — agent freely picks vs. ordered priority list.
-  *Proposed:* ordered list + `999+` priority (predictable). _pending_
-- **Completion detection** — single sigil vs. dual-condition gate. _not discussed_
-- **Branching/integration** — push to master vs. branches/PRs. _not discussed_
+- **Completion detection** — single sigil vs. dual-condition gate.
+  _coupled to autonomy; revisit when we settle environment_
+- **Branching/integration** — push to master vs. branches/PRs.
+  _coupled to environment; revisit then_
 
 ## Parking Lot (revisit deliberately)
 
