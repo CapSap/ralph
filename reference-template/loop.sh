@@ -33,6 +33,9 @@ COMPLETION_SIGIL="${COMPLETION_SIGIL:-<promise>COMPLETE</promise>}"
 CLAUDE_CMD="${CLAUDE_CMD:-claude}"              # or: "npx @anthropic-ai/claude-code"
 MODEL="${MODEL:-}"                              # e.g. "opus"; empty = CLI default
 LOG_DIR="${LOG_DIR:-logs}"
+STREAM="${STREAM:-auto}"                        # auto | 1 | 0 — readable live output
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+RENDERER="${RENDERER:-$SCRIPT_DIR/parse_stream.js}"
 
 PROMPT_FILE="PROMPT_${MODE}.md"
 
@@ -54,6 +57,30 @@ if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
   exit 2
 fi
 
+# ---- streaming renderer ------------------------------------------
+# Headless mode (-p) normally prints nothing until the turn ends. With
+# --output-format stream-json the CLI emits one JSON object per line as it
+# works; parse_stream.js renders that as tool-by-tool progress you can watch.
+# STREAM=0 falls back to the plain text stream (no node required).
+use_stream=0
+case "$STREAM" in
+  0|off|false|no) ;;
+  1|on|true|yes|auto)
+    if command -v node >/dev/null 2>&1 && [[ -f "$RENDERER" ]]; then
+      use_stream=1
+    elif [[ "$STREAM" == "auto" ]]; then
+      echo "note: readable streaming off (needs node + $RENDERER); using plain output" >&2
+    else
+      echo "error: STREAM=$STREAM but node and/or '$RENDERER' is missing" >&2
+      exit 2
+    fi
+    ;;
+  *)
+    echo "error: STREAM must be auto, 1, or 0 (got '$STREAM')" >&2
+    exit 2
+    ;;
+esac
+
 mkdir -p "$LOG_DIR"
 
 # Optional per-iteration model flag.
@@ -66,6 +93,7 @@ echo "  prompt          : $PROMPT_FILE"
 echo "  max iterations  : $MAX_ITERATIONS"
 echo "  noop breaker    : $MAX_NOOP"
 echo "  completion sigil: $COMPLETION_SIGIL"
+echo "  output          : $( ((use_stream)) && echo "streamed (parse_stream.js)" || echo "plain" )"
 echo "────────────────────────────────────────────────────────"
 
 noop_count=0
@@ -86,10 +114,23 @@ for (( i=1; i<=MAX_ITERATIONS; i++ )); do
   #
   # --dangerously-skip-permissions lets the loop run unattended. Remove it
   # (or swap for --permission-mode acceptEdits) for a human-in-the-loop run.
-  "$CLAUDE_CMD" -p "$(cat "$PROMPT_FILE")" \
-      --dangerously-skip-permissions \
-      "${MODEL_FLAG[@]}" \
-      2>&1 | tee "$log_file"
+  #
+  # Either way the log holds the *rendered* text, so the sigil grep below and
+  # the plain-output path agree. stream-json requires --verbose.
+  if (( use_stream )); then
+    "$CLAUDE_CMD" -p "$(cat "$PROMPT_FILE")" \
+        --dangerously-skip-permissions \
+        --verbose \
+        --output-format stream-json \
+        --include-partial-messages \
+        "${MODEL_FLAG[@]}" \
+        2>&1 | node "$RENDERER" | tee "$log_file"
+  else
+    "$CLAUDE_CMD" -p "$(cat "$PROMPT_FILE")" \
+        --dangerously-skip-permissions \
+        "${MODEL_FLAG[@]}" \
+        2>&1 | tee "$log_file"
+  fi
 
   # ---- completion check -----------------------------------------
   if grep -qF "$COMPLETION_SIGIL" "$log_file"; then

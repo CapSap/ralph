@@ -59,6 +59,7 @@ The model never has to hold the whole project in its head. The files do.
 └── reference-template/        ← a synthesized, copy-into-your-project starter
     ├── README.md              ← how to use the template
     ├── loop.sh                ← the orchestrator (plan/build modes, safety rails)
+    ├── parse_stream.js        ← renders the agent's stream as readable progress
     ├── PROMPT_plan.md         ← prompt that produces IMPLEMENTATION_PLAN.md
     ├── PROMPT_build.md        ← prompt that executes one task per loop
     ├── AGENTS.md              ← operational guide the agent maintains

@@ -31,6 +31,7 @@ IMPLEMENTATION_PLAN.md # working memory (the agent updates it)
 | File | Purpose | Who maintains |
 |---|---|---|
 | `loop.sh` | orchestrator + safety rails | you |
+| `parse_stream.js` | readable live view of the agent's stream | you (rarely) |
 | `PROMPT_plan.md` | builds the plan from specs (no code) | you |
 | `PROMPT_build.md` | does one task per loop | you |
 | `specs/*.md` | source of truth for *what* to build | you |
@@ -72,6 +73,7 @@ Add a new sign each time you watch the loop do something dumb. Tuning ≈ 80% of
 | backpressure strength | more/better tests+types = better output |
 | permission mode | `acceptEdits` (HITL) vs `--dangerously-skip-permissions` (AFK) |
 | `999+` priority | higher number = do-first; inject urgent tasks without renumbering |
+| `STREAM` | `auto`/`1`/`0` — readable tool-by-tool output vs. raw agent stream |
 
 ---
 
